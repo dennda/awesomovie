@@ -21,22 +21,24 @@ class Song(object):
             elements = line.strip().split(" ")
             # [0] cause we discard the imaginary part, almost identical to
             # actual magnitude.
-            sample = [eval(element)[0] for element in elements]
+            sample = [eval(element) for element in elements]
             num_bins = len(sample)
-            if num_bins != self.freq_bins:
-                _sample = []
-                val = 0.
-                i = 0
-                bin_width = num_bins / self.freq_bins
-                for freq in sample:
-                    if i == bin_width:
-                        _sample.append(val)
-                        val = 0.
-                        i = 0
-                    val += freq
-                    i += 1
-                sample = _sample
-            assert len(sample) == self.freq_bins
+            #if num_bins != self.freq_bins:
+            #    _sample = []
+            #    val = 0.
+            #    i = 0
+            #    bin_width = num_bins / self.freq_bins
+            #    print bin_width
+            #    for freq in sample:
+            #        if i == bin_width:
+            #            _sample.append(val)
+            #            val = 0.
+            #            i = 0
+            #        val += freq
+            #        i += 1
+            #    sample = _sample
+            #print len(sample), self.freq_bins
+            #assert len(sample) == self.freq_bins
 
             self._samples.append(sample)
             yield sample
@@ -45,10 +47,10 @@ class Song(object):
 
 
 from time import time, sleep
-channel1s = Song('kanal1s_trans3', freq_bins=20)
+channel1s = Song('left.dat', freq_bins=20)
 last = time()
 # SPS = samples / tracklength
-sps = 1371. / 127.
+sps = 24.
 time_per_sample = 1. / sps
 
 drop = False
