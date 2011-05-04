@@ -10,6 +10,8 @@ sip.setapi('QVariant', 2)
 from PyQt4 import QtCore, QtGui
 
 import soundviz
+
+
 class SelectionRect(QtGui.QGraphicsItem):
             
         def __init__(self, p_x=0, p_y=0, p_width=50, p_height=50, p_num=1):
@@ -30,14 +32,27 @@ class SelectionRect(QtGui.QGraphicsItem):
             pen.setColor(QtGui.QColor(QtCore.Qt.black))
             pen.setWidth(1)
             painter.setPen(pen)
-            painter.drawRect(self.x, self.y,self.width, self.height)
+            painter.drawRect(self.x, self.y,abs(self.width), abs(self.height))
             painter.drawText(self.x+2,self.y+10,str(self.num))
+            
+            painter.fillRect(QtCore.QRectF(self.x-10+self.width,self.y,10,10), QtGui.QBrush(QtCore.Qt.white))
             painter.drawText(self.x-10+self.width,self.y+10,str("X"))
             
         def boundingRect(self):
             return QtCore.QRectF(self.x-1,self.y-1,self.width+1,self.height+1)
         def mousePressEvent(self,  mouseEvent ):
             print("mouse press event" + str(mouseEvent.pos()))
+            if QtCore.QRectF(self.x-10+self.width,self.y,10,10).contains(mouseEvent.pos()):
+                print("pressed X")
+                mouseEvent.accept()
+                rect = self.boundingRect()
+                scene = self.scene()
+                scene.removeItem(self)
+                scene.update(rect)
+                scene.update()
+                
+            else:
+                mouseEvent.ignore()
             
             
 
@@ -56,13 +71,14 @@ class EqualizerScene(QtGui.QGraphicsScene):
     bounds = []
     marked = []
     frame_counter = []
+    boxes = []
     
     def __init__(self):
         super(EqualizerScene, self).__init__()
 
     def mousePressEvent(self,  mouseEvent ):
         super(EqualizerScene,self).mousePressEvent(mouseEvent)
-        if not self.clicked:
+        if not self.clicked and mouseEvent.button() & QtCore.Qt.RightButton > 0:
             self.clicked = 1
             print("clicked at:")
             self.inPoint = mouseEvent.scenePos()
@@ -80,7 +96,8 @@ class EqualizerScene(QtGui.QGraphicsScene):
             tmp = self.marked[-1]
             wid = self.width / float(self.samples)
             #self.addRect(tmp[0]*wid,self.y + self.height*(1-tmp[1]-tmp[3]),tmp[2]*wid,tmp[3]* self.height)
-            b  = SelectionRect(tmp[0]*wid, self.y + self.height*(1-tmp[1]-tmp[3]), tmp[2]*wid, tmp[3]* self.height , len(self.marked))
+            b  = SelectionRect(tmp[0]*wid, self.y + self.height*(1-tmp[1]-tmp[3]), tmp[2]*wid, max(tmp[3]*self.height,10) , len(self.marked))
+            self.boxes.append(b)
             self.addItem(b)
             self.update(b.boundingRect())
             self.update()
@@ -137,7 +154,14 @@ class EqualizerScene(QtGui.QGraphicsScene):
         #self.view.update()
         self.update()
         #self.main.update()
-
+    
+    def removeItem(self, item):
+        super(EqualizerScene,self).removeItem(item)
+        ind = self.boxes.index(item)
+        print("index: INDD" + str(ind))
+        if ind >= 0:
+            del self.marked[ind]
+            del self.boxes[ind]
         
 class MainWindow(QtGui.QMainWindow):
     _addtime = 0
