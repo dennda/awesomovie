@@ -19,20 +19,20 @@ HOST, PORT = "localhost", 9999
 
 class TCPthreaded(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
-        
+
 class TCPEq(SocketServer.BaseRequestHandler):
     #def __init__(self):
     #    pass
-    num_frames_method = []
-    num_marks_method = []
-    retrieve_sample_method = []
-    
+    num_frames_method = None
+    num_marks_method = None
+    retrieve_sample_method = None
+
     @classmethod
     def setFrameMethod(cls, method):
         if type(cls.setFrameMethod) == type(method):
             cls.num_frames_method = method
 
-            
+
     @classmethod
     def setSelectedMethod(cls, method):
         if type(cls.setSelectedMethod) == type(method):
@@ -42,7 +42,7 @@ class TCPEq(SocketServer.BaseRequestHandler):
     def setRetrieveMethod(cls, method):
         if type(cls.setRetrieveMethod) == type(method):
             cls.retrieve_sample_method = method
-            
+
     def handle(self):
         print("handling request")
         # self.request is the TCP socket connected to the client
@@ -75,8 +75,8 @@ class TCPEq(SocketServer.BaseRequestHandler):
                 print self.data
                 print "DATA END"
                 # just send back the same data, but upper-cased
-                
-            if not self.data: 
+
+            if not self.data:
                 print("CLOSING CONNECTION")
                 break
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     #server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
     #server = TCPEq()
     TCPEq.startServing(HOST,PORT)
-    
+
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     data = s.recv(1024)
     s.send('other data')
     s.send('mroe stuff')
-    
+
     print(data)
     raw_input()
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sip
-import audiere
+#import audiere
 import blender_net
 sip.setapi('QString', 2)
 sip.setapi('QVariant', 2)
@@ -13,7 +13,7 @@ import soundviz
 
 
 class SelectionRect(QtGui.QGraphicsItem):
-            
+
         def __init__(self, p_x=0, p_y=0, p_width=50, p_height=50, p_num=1):
             super(SelectionRect,self).__init__()
             self.setZValue(10)
@@ -22,7 +22,7 @@ class SelectionRect(QtGui.QGraphicsItem):
             self.height=p_height
             self.width=p_width
             self.num=p_num
-                
+
         def paint(self, painter, option, widget=0):
             pen = QtGui.QPen()
             pen.setColor(QtGui.QColor(QtCore.Qt.green))
@@ -34,10 +34,10 @@ class SelectionRect(QtGui.QGraphicsItem):
             painter.setPen(pen)
             painter.drawRect(self.x, self.y,abs(self.width), abs(self.height))
             painter.drawText(self.x+2,self.y+10,str(self.num))
-            
+
             painter.fillRect(QtCore.QRectF(self.x-10+self.width,self.y,10,10), QtGui.QBrush(QtCore.Qt.white))
             painter.drawText(self.x-10+self.width,self.y+10,str("X"))
-            
+
         def boundingRect(self):
             return QtCore.QRectF(self.x-1,self.y-1,self.width+1,self.height+1)
         def mousePressEvent(self,  mouseEvent ):
@@ -50,29 +50,29 @@ class SelectionRect(QtGui.QGraphicsItem):
                 scene.removeItem(self)
                 scene.update(rect)
                 scene.update()
-                
+
             else:
                 mouseEvent.ignore()
-            
-            
+
+
 
 class EqualizerScene(QtGui.QGraphicsScene):
     clicked = 0
     inPoint = QtCore.QPointF()
     outPoint = QtCore.QPointF()
-    
+
     x = 0
     y = 80
     height = 400
     width = 450
     samples = 15
-    
+
     rects = []
     bounds = []
     marked = []
     frame_counter = []
     boxes = []
-    
+
     def __init__(self):
         super(EqualizerScene, self).__init__()
 
@@ -85,8 +85,8 @@ class EqualizerScene(QtGui.QGraphicsScene):
             print(str(mouseEvent.scenePos()))
 
     def mouseReleaseEvent(self,  mouseEvent ):
-        
-        if self.clicked :    
+
+        if self.clicked :
             self.clicked = 0
             print("released at:")
             self.outPoint = mouseEvent.scenePos()
@@ -115,7 +115,7 @@ class EqualizerScene(QtGui.QGraphicsScene):
         h = -(min_y - (self.y + self.height)) / float(self.height) - y
 
         return (x,y,w,h)
-     
+
     def nextSample(self, row, frame=0):
 
         #row = self.song.getFrame(self.frame % self.song.size()[0])
@@ -126,35 +126,35 @@ class EqualizerScene(QtGui.QGraphicsScene):
         counter = 0
         self.samples = len(row)
         width = float(self.width)/float(self.samples)
-        
+
         if not self.frame_counter:
             self.frame_counter = QtGui.QGraphicsTextItem("frame: 0")
             self.frame_counter.setZValue(2.0)
             self.addItem(self.frame_counter)
             self.frame_counter.setPos(10.0,100.0)
         self.frame_counter.setPlainText("frame: " + str(frame))
-        
+
         for sample in row:
             while len(self.rects) <=counter:
-                self.rects.append(self.addRect(counter*width,160,width,-1.0*(80.0), 
+                self.rects.append(self.addRect(counter*width,160,width,-1.0*(80.0),
                     QtGui.QPen(QtGui.QColor(QtCore.Qt.black)),
                     QtGui.QBrush(QtCore.Qt.lightGray, QtCore.Qt.SolidPattern)))
-            self.rects[counter].setRect(counter*width,self.y+self.height,width,self.height/-80.0*(80+float(sample))) 
+            self.rects[counter].setRect(counter*width,self.y+self.height,width,self.height/-80.0*(80+float(sample)))
             counter +=1
         if type(self.bounds) == type([]):
-            self.bounds= self.addRect(counter*width,160,width,-1.0*(80.0), 
+            self.bounds= self.addRect(counter*width,160,width,-1.0*(80.0),
                 QtGui.QPen(QtGui.QColor(QtCore.Qt.black)),
                 QtGui.QBrush(QtCore.Qt.white, QtCore.Qt.SolidPattern))
             self.bounds.setZValue(-1)
-        
+
         self.bounds.setRect(QtCore.QRectF(self.x,self.y,self.width,self.height))
         self.update(QtCore.QRectF(-1,-1,counter*width+83,160))
-        
+
         #self.view.invalidateScene()
         #self.view.update()
         self.update()
         #self.main.update()
-    
+
     def removeItem(self, item):
         super(EqualizerScene,self).removeItem(item)
         ind = self.boxes.index(item)
@@ -162,31 +162,31 @@ class EqualizerScene(QtGui.QGraphicsScene):
         if ind >= 0:
             del self.marked[ind]
             del self.boxes[ind]
-        
+
 class MainWindow(QtGui.QMainWindow):
     _addtime = 0
 
     def __init__(self):
         super(MainWindow, self).__init__()
-        
+
         #initialize Window
         self.setWindowTitle("Frequency Key Generator")
         self.resize(500, 500)
-        
+
         #create Objects
         self.song = soundviz.Song("left_new3.dat",45)
         size = self.song.size()
         print("size is " + str(size))
         self.frames=size[0]
         self.samples=size[1]
-        
+
         self.main = QtGui.QWidget()
         self.main_layout = QtGui.QVBoxLayout()
         self.controls_layout = QtGui.QHBoxLayout()
 
         self.scene = EqualizerScene()
         self.view = QtGui.QGraphicsView(self.scene)
-        
+
         self.fps = QtGui.QSpinBox()
         self.frame_slider = FrameSlider(self)
         self.frame_slider.setMinimum(0)
@@ -196,20 +196,20 @@ class MainWindow(QtGui.QMainWindow):
 
         self.start_button = QtGui.QPushButton("Start")
         self.stop_button = QtGui.QPushButton("Stop")
-        
+
         #setLayout
         self.main.setLayout(self.main_layout)
         self.setCentralWidget(self.main)
         self.main_layout.addWidget(self.view)
         self.main_layout.addWidget(self.frame_slider)
         self.main_layout.addLayout(self.controls_layout)
-        
+
         self.controls_layout.addWidget(self.start_button)
         self.controls_layout.addWidget(self.stop_button)
         self.controls_layout.addStretch()
         self.controls_layout.addWidget(QtGui.QLabel("FPS:"))
         self.controls_layout.addWidget(self.fps)
-        
+
         self.test_layout = QtGui.QHBoxLayout()
         self.test_box_text = QtGui.QLabel("box:")
         self.test_box_input = QtGui.QSpinBox()
@@ -218,7 +218,7 @@ class MainWindow(QtGui.QMainWindow):
         self.test_calculate = QtGui.QPushButton("calc")
         self.test_val_text = QtGui.QLabel("result:")
         self.test_val_disp = QtGui.QLabel("0.0")
-        
+
         self.main_layout.addLayout(self.test_layout)
         self.test_layout.addWidget(self.test_box_text)
         self.test_layout.addWidget(self.test_box_input)
@@ -228,11 +228,11 @@ class MainWindow(QtGui.QMainWindow):
         self.test_layout.addWidget(self.test_val_text)
         self.test_layout.addWidget(self.test_val_disp)
         QtCore.QObject.connect(self.test_calculate, QtCore.SIGNAL("clicked()"),self.showBoxVal)
-        
+
         #Signal Slot connections
         QtCore.QObject.connect(self.start_button, QtCore.SIGNAL("clicked()"),self.startPlayback)
         QtCore.QObject.connect(self.stop_button, QtCore.SIGNAL("clicked()"),self.stopPlayback)
-        
+
         #fill Data
         self.fps.setValue(24)
         self.fps.setRange(1,500)
@@ -241,8 +241,8 @@ class MainWindow(QtGui.QMainWindow):
         blender_net.TCPEq.setFrameMethod(self.getFrameCount)
         blender_net.TCPEq.setSelectedMethod(self.getSelectionCount)
         blender_net.TCPEq.setRetrieveMethod(self.getSample)
-        self.audio=audiere.open_device()
-        self.song_wav = self.audio.open_file("song.ogg")
+        #self.audio=audiere.open_device()
+        #self.song_wav = self.audio.open_file("song.ogg")
 
     def getFrameCount(self):
         return self.frames
@@ -250,13 +250,13 @@ class MainWindow(QtGui.QMainWindow):
         return self.samples
     def getSelectionCount(self):
         return len(self.scene.marked)
-        
+
     def showBoxVal(self):
         box = self.test_box_input.value()
         frame = self.test_frame_input.value()
         self.test_val_disp.setText(str(self.getSample(box,frame)))
-        
-        
+
+
     def skipToFrame(self, frame):
         self.frame = frame
         if self.slider_moving:
@@ -268,13 +268,13 @@ class MainWindow(QtGui.QMainWindow):
             QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"),self.commitFrameChange)
             self.timer.start(250)
         #self.nextSample()
-        
+
     def commitFrameChange(self):
         self._addtime = 1000.0 * self.frame/self.fps.value()
         self.nextSample()
         self.slider_moving=False
         del(self.timer)
-        
+
     def nextSample(self):
         try:
             #print("frame:"+ str(self.frame))
@@ -285,8 +285,8 @@ class MainWindow(QtGui.QMainWindow):
         except AttributeError:
             self.frame=0
             return
-        
-        
+
+
         row = self.song.getFrame(self.frame % self.song.size()[0])
         self.scene.nextSample(row, self.frame)
         self.frame_slider.setValue(self.frame)
@@ -298,14 +298,14 @@ class MainWindow(QtGui.QMainWindow):
         counter = 0
         width = 10
         for sample in row:
-            self.scene.addRect(counter*width,160,width,-1.0*(80.0+float(sample)), 
+            self.scene.addRect(counter*width,160,width,-1.0*(80.0+float(sample)),
                 QtGui.QPen(QtGui.QColor(QtCore.Qt.black)),
                 QtGui.QBrush(QtCore.Qt.lightGray, QtCore.Qt.SolidPattern))
             counter +=1
         self.scene.addRect(QtCore.QRectF(-1,160,counter*width+83,-160))
-        
+
         self.scene.update(QtCore.QRectF(-1,-1,counter*width+83,160))
-        
+
         self.view.invalidateScene()
         self.view.update()
         self.update()
@@ -319,8 +319,8 @@ class MainWindow(QtGui.QMainWindow):
             if(self.time_stopped):
                 self.time.restart()
                 self.time_stopped = 0
-                self.song_wav.position=self.elapsed()*44.1
-                self.song_wav.play()
+                #self.song_wav.position=self.elapsed()*44.1
+                #self.song_wav.play()
         except (NameError, AttributeError):
             self.time_stopped = 0
             self.timer = QtCore.QTimer(self)
@@ -329,22 +329,22 @@ class MainWindow(QtGui.QMainWindow):
             QtCore.QObject.connect(self.timer,QtCore.SIGNAL("timeout()"), self.nextSample)
             self.time.start()
             self.timer.start(1000.0/(2*self.fps.value()))
-            self.song_wav.position=self.elapsed()*44.1
-            self.song_wav.play()
-    
+            #self.song_wav.position=self.elapsed()*44.1
+            #self.song_wav.play()
+
     def stopPlayback(self):
         try:
             self.timer.stop()
             self.time_stopped = self.time.elapsed()
             self._addtime += self.time_stopped
-            self.song_wav.pause()
+            #self.song_wav.pause()
         except (NameError, AttributeError):
             print("nothing to stop there yet")
 
     def elapsed(self):
         return self.time.elapsed()+self._addtime
 
-        
+
     def getSample(self,box,frame):
         row = self.song.getFrame(frame)
         if len(self.scene.marked)<=box:
@@ -365,7 +365,7 @@ class MainWindow(QtGui.QMainWindow):
 
         return result
 
-        
+
 class FrameSlider(QtGui.QSlider):
     def __init__(self, parent):
         super(FrameSlider,self).__init__()

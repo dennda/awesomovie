@@ -1,8 +1,3 @@
-#from bpy.ops.anim import *
-#
-#scene = bpy.context.scene
-#scene.frame_end = 3048
-#change_frame(frame=0)
 
 
 class Song(object):
@@ -21,7 +16,7 @@ class Song(object):
             elements = line.strip().split(" ")
             # [0] cause we discard the imaginary part, almost identical to
             # actual magnitude.
-            sample = [eval(element) for element in elements]
+            sample = [abs(int(float(element))) for element in elements]
             num_bins = len(sample)
             #if num_bins != self.freq_bins:
             #    _sample = []
@@ -46,31 +41,56 @@ class Song(object):
         #raise StopIteration
 
 
-from time import time, sleep
 channel1s = Song('left.dat', freq_bins=20)
-last = time()
-# SPS = samples / tracklength
-sps = 24.
-time_per_sample = 1. / sps
 
-drop = False
-for sample in channel1s.samples():
-    now = time()
-    if drop:
-        last = now
-        drop = False
-        continue
-    # Quickly clear the terminal:
-    print '\x1b[H\x1b[J'
-    for freq in sample:
-        #print freq
-        ampl = max(0, int(freq))
-        print "." * ampl
-    diff = now - last
-    wait = time_per_sample - diff
-    if diff < time_per_sample:
-        sleep(abs(wait - 0.005))
-    else:
-        drop = True
-    last = now
+
+from bpy.ops.anim import *
+
+scene = bpy.context.scene
+scene.frame_end = 3048
+
+assert frames == samples
+
+num_freqs = len(samples[0])
+for freqno in range(num_freqs):
+    spacing = 10
+    location = (freqno * spacing, 0, 0)
+    bpy.ops.mesh.primitive_cube_add(location=location)
+
+for frameno in range(frames):
+    change_frame(frame=frameno)
+
+    # Set all object properties
+
+    # Set scaling keying set
+    bpy.ops.anim.keyframe_insert_menu(type=-3)
+
+
+#from math import log
+#from time import time, sleep
+#last = time()
+## SPS = samples / tracklength
+#sps = 24.
+#time_per_sample = 127. / 3059. #(1. / sps) * (1. / 3059.)
+#drop = False
+#for sample in channel1s.samples():
+#    now = time()
+#    if drop:
+#        last = now
+#        drop = False
+#        continue
+#    # Quickly clear the terminal:
+#    print '\x1b[H\x1b[J'
+#    for index, freq in enumerate(sample):
+#        #print freq
+#        if index > 20:
+#            break
+#        print "." * (freq / 2)
+#    diff = now - last
+#    wait = time_per_sample - diff
+#    if diff < time_per_sample:
+#        sleep(abs(wait))
+#    else:
+#        drop = True
+#    last = now
 
